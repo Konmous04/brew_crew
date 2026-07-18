@@ -13,10 +13,11 @@ class Register extends StatefulWidget {
 class _RegisterState extends State<Register> {
 
   final AuthService _auth = AuthService();
-
+  final _formKey = GlobalKey<FormState>();
 
   String email = '';
   String password = '';
+  String error = '';
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +45,12 @@ class _RegisterState extends State<Register> {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
         child: Form(
+          key: _formKey,
           child: Column(
             children: [
               SizedBox(height: 20.0),
               TextFormField(
+                validator: (val) => val?.isEmpty ?? true ? 'Enter an email' : null,
                 onChanged: (val) {
                   setState(() {
                     email = val;
@@ -57,6 +60,13 @@ class _RegisterState extends State<Register> {
               SizedBox(height: 20.0),
               TextFormField(
                 obscureText: true,
+                validator: (val) {
+                  if (val==null || val.length<6){
+                    return 'Enter a password 6+ chars length';
+                  } else{
+                    return null;
+                  }
+                },
                 onChanged: (val) {
                   password = val;
                 },
@@ -64,13 +74,27 @@ class _RegisterState extends State<Register> {
               SizedBox(height: 20.0),
               ElevatedButton(
                 onPressed: () async{
-                  print(email);
-                  print(password);
+                  if (_formKey.currentState?.validate() == true) {
+                    dynamic result = await _auth.registerWithEmailAndPassword(email, password);
+                    if (result == null){
+                      setState(() {
+                        error = 'please enter a valid email';
+                      });
+                    }
+                  }
                 },
                 child: Text('Register'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pink[400],
                   foregroundColor: Colors.white,
+                ),
+              ),
+              SizedBox(height: 12.0),
+              Text(
+                error,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 14.0,
                 ),
               ),
             ],
