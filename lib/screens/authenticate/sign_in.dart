@@ -1,5 +1,8 @@
 import 'package:brew_crew/services/auth.dart';
+import 'package:brew_crew/shared/loading.dart';
 import 'package:flutter/material.dart';
+
+import '../../shared/constants.dart';
 
 class SignIn extends StatefulWidget {
 
@@ -14,6 +17,7 @@ class _SignInState extends State<SignIn> {
 
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
+  bool loading = false;
 
   String email = '';
   String password = '';
@@ -21,7 +25,7 @@ class _SignInState extends State<SignIn> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return loading ? Loading() : Scaffold(
       backgroundColor: Colors.brown[100],
       appBar: AppBar(
         backgroundColor: Colors.brown[400],
@@ -50,6 +54,7 @@ class _SignInState extends State<SignIn> {
             children: [
               SizedBox(height: 20.0),
               TextFormField(
+                decoration: textInputDecoration.copyWith(hintText: 'Email'),
                 validator: (val) => val?.isEmpty ?? true ? 'Enter an email' : null,
                 onChanged: (val) {
                   setState(() {
@@ -60,6 +65,7 @@ class _SignInState extends State<SignIn> {
               SizedBox(height: 20.0),
               TextFormField(
                 obscureText: true,
+                decoration: textInputDecoration.copyWith(hintText: 'Password'),
                 validator: (val) {
                   if (val==null || val.length<6){
                     return 'Enter a password 6+ chars length';
@@ -75,10 +81,14 @@ class _SignInState extends State<SignIn> {
               ElevatedButton(
                 onPressed: () async{
                   if (_formKey.currentState?.validate() == true) {
+                    setState(() {
+                      loading = true;
+                    });
                     dynamic result = await _auth.signInWithEmailAndPassword(email, password);
                     if (result == null){
                       setState(() {
                         error = 'please try again';
+                        loading = false;
                       });
                     }
                   }
